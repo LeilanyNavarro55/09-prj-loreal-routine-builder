@@ -55,6 +55,7 @@ const response = await fetch(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      model: "gpt-5-search-api",
       messages: [
         {
           role: "system",
@@ -78,9 +79,10 @@ stateless and needs the full history every time.
 
 ## Code conventions
 
-- Use OpenAI's `gpt-4.1` model unless asked otherwise.
+- Use OpenAI's `gpt-5-search-api` model for current web-search answers in this project.
 - Use the `messages` parameter (not `prompt`) and read
   `data.choices[0].message.content`.
+- Display returned web citations as clickable links.
 - Use `async/await` for all API calls.
 - Use `const` and `let` for variables.
 - Use template literals for string formatting and DOM insertion.
