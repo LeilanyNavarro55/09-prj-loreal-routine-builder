@@ -125,16 +125,31 @@ body {
   margin-top: 6px;
 }
 
-.chat-message a {
-  color: var(--loreal-red);
+.chat-message .chat-source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  margin-inline: 2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eef5ff;
+  color: #24496b;
+  font-size: 0.9em;
+  line-height: 1.5;
+  text-decoration: none;
   overflow-wrap: anywhere;
 }
 
+.chat-message .chat-source-link:hover {
+  background: #deebfb;
+}
+
 .chat-citations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-block-start: 8px;
-  margin-inline-start: 20px;
-  padding-inline-start: 20px;
-  font-size: 14px;
 }
 
 .chat-status {

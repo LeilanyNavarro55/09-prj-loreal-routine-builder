@@ -14,7 +14,7 @@ const routineModel = "gpt-5-search-api";
 const routineWorkerUrl =
   "https://chat-bot.navarroleilany219.workers.dev/";
 const advisorInstructions =
-  "You are a L'Oréal skincare and beauty advisor. Help with the generated routine and related topics such as skincare, haircare, makeup, and fragrance. Use web search for current information about L'Oréal products, ingredients, and routine guidance, and include citations for current claims. If asked about unrelated topics, politely explain that you can help with beauty and routine questions instead. Create practical guidance, explain product order and timing, and do not recommend products that were not selected for the generated routine.";
+  "You are a L'Oréal skincare and beauty advisor. Help with the generated routine and related topics such as skincare, haircare, makeup, and fragrance. Use web search for current information about L'Oréal products, ingredients, and routine guidance, and include citations for current claims. If asked about unrelated topics, politely explain that you can help with beauty and routine questions instead. Create practical guidance, explain product order and timing, and do not recommend products that were not selected for the generated routine. Never display raw JSON, code, or product records. When referring to selected products, use only their product names.";
 
 /* Keep selected products available when the category filter changes */
 let selectedProducts = loadSelectedProducts();
@@ -207,20 +207,18 @@ function displayChat(statusText = "") {
     messageElement.appendChild(messageContent);
 
     if (message.role === "assistant" && message.citations?.length) {
-      const citationList = document.createElement("ul");
-      citationList.className = "chat-citations";
+      const citationContainer = document.createElement("div");
+      citationContainer.className = "chat-citations";
 
       message.citations.forEach((citation) => {
-        const citationItem = document.createElement("li");
-        const citationLink = createSafeLink(citation.url, citation.title);
+        const citationLink = createSafeLink(citation.url);
         if (citationLink) {
-          citationItem.appendChild(citationLink);
-          citationList.appendChild(citationItem);
+          citationContainer.appendChild(citationLink);
         }
       });
 
-      if (citationList.childElementCount > 0) {
-        messageElement.appendChild(citationList);
+      if (citationContainer.childElementCount > 0) {
+        messageElement.appendChild(citationContainer);
       }
     }
 
@@ -247,7 +245,7 @@ function appendMessageLinks(text, container) {
   while ((match = linkPattern.exec(text)) !== null) {
     container.appendChild(document.createTextNode(text.slice(textStart, match.index)));
     const url = match[2] || match[3];
-    const link = createSafeLink(url, match[1] || url);
+    const link = createSafeLink(url);
 
     if (link) {
       container.appendChild(link);
@@ -261,7 +259,7 @@ function appendMessageLinks(text, container) {
 }
 
 /* Accept only HTTP(S) links from the model response */
-function createSafeLink(url, label) {
+function createSafeLink(url) {
   try {
     const parsedUrl = new URL(url);
     if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
@@ -270,9 +268,16 @@ function createSafeLink(url, label) {
 
     const link = document.createElement("a");
     link.href = parsedUrl.href;
-    link.textContent = label;
+    link.className = "chat-source-link";
+    link.textContent = parsedUrl.hostname.replace(/^www\./i, "");
     link.target = "_blank";
     link.rel = "noopener noreferrer";
+
+    const icon = document.createElement("i");
+    icon.className = "fa-solid fa-globe";
+    icon.setAttribute("aria-hidden", "true");
+    link.prepend(icon);
+
     return link;
   } catch {
     return null;
@@ -317,7 +322,6 @@ async function getAssistantReply(messages) {
         )
         .map((citation) => ({
           url: citation.url,
-          title: citation.title || citation.url,
         }))
     : [];
 
@@ -397,11 +401,12 @@ generateRoutineButton.addEventListener("click", async () => {
     { role: "system", content: advisorInstructions },
     {
       role: "user",
-      content: `Create my routine from these selected products:\n${JSON.stringify(
-        productsForRoutine,
-        null,
-        2
-      )}`,
+      content: `Create my routine from these selected products. Use their details as context, but do not repeat the product records. Refer to each product by its name only:\n${productsForRoutine
+        .map(
+          (product) =>
+            `- ${product.name} (${product.brand}; ${product.category}): ${product.description}`
+        )
+        .join("\n")}`,
     },
   ];
 
