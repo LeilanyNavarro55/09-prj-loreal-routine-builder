@@ -19,6 +19,9 @@ body {
   color: var(--loreal-dark);
   display: flex;
   justify-content: center;
+  background-color: #fff;
+  background-image: url("img/background-line-art.svg");
+  background-size: 720px 720px;
 }
 
 .page-wrapper {
